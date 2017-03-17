@@ -1,0 +1,127 @@
+---
+title: "LogCheck"
+author: "Chuan Hong"
+date: "3/16/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+```
+
+## Data import and munge
+
+```{r}
+library(car)
+
+POST <- read.csv("REVISED_FINAL_POST_OM.csv",header = TRUE,sep = ",",stringsAsFactors = FALSE)
+PRE <- read.csv("REVISED_FINAL_PRE_OM.csv",header = TRUE,sep = ",",stringsAsFactors = FALSE)
+
+Post_proc <- lapply(POST, FUN = function(foo) car::recode(foo, "'Never' = 0 ; 'Annually' = 1 ; 'Seasonally' = 2 ; 'Monthly' = 3 ; 'Weekly' = 4 ; 'Daily' = 5 ; 'Not applicable' = NA ; 'Not Applicable' = NA ; 'No logging' = NA ; 'No understanding' = NA ; '' = NA ; 'Y' = T", as.numeric.result = T, as.factor.result = F))
+Post_proc <- data.frame(Post_proc)
+IsExperimental = Post_proc[2:nrow(Post_proc),c(1,ncol(Post_proc))]
+cutdown <- ncol(Post_proc)-3
+Post_proc <- Post_proc[,1:cutdown]
+best_prac <- as.vector(Post_proc[1,2:cutdown],mode='numeric')
+best_prac = append(1, best_prac)
+Post_proc <- Post_proc[2:nrow(Post_proc), ]
+
+Pre_proc <- lapply(PRE, FUN = function(foo) car::recode(foo, "'Never' = 0 ; 'never' = 0 ; 'Annually' = 1 ; 'Seasonally' = 2 ; 'Monthly' = 3 ; 'Weekly' = 4 ; 'Daily' = 5 ; 'Not applicable' = NA ; 'Not Applicable' = NA ; 'Multiple answer' = NA ; 'Mulitple answer' = NA ; 'As needed' = NA ; 'No logging' = NA ; 'No understanding' = NA ; 'NR' = NA ; '' = NA", as.numeric.result = T, as.factor.result = F))
+Pre_proc <- data.frame(Pre_proc)
+cutdown <- ncol(Pre_proc)-2
+Pre_proc <- Pre_proc[2:nrow(Pre_proc),1:cutdown]
+
+Post_proc2 <- subset(Post_proc, BPL.BLD.ID %in% Pre_proc$BPL.BLD.ID)
+Pre_proc2 <- subset(Pre_proc, BPL.BLD.ID %in% Post_proc$BPL.BLD.ID)
+Post_score <- data.frame(mapply(`/`,Post_proc2,best_prac))
+Pre_score <- data.frame(mapply(`/`,Pre_proc2,best_prac))
+Pre_score <- Pre_score[with(Pre_score, order(BPL.BLD.ID)), ]
+Post_score <- Post_score[with(Post_score, order(BPL.BLD.ID)), ]
+Pre_score[1000 > Pre_score & Pre_score > 1] <- 1
+Post_score[1000 > Post_score & Post_score > 1] <- 1
+
+Pre_post = Post_score - Pre_score
+Pre_post[,1] = Pre_score[,1]
+
+IsExperimental <- lapply(POST[2:nrow(POST),c(1,ncol(POST))], FUN = function(foo) car::recode(foo, "'' = F ; 'Y' = T", as.numeric.result = T, as.factor.result = F))
+IsExperimental <- data.frame(IsExperimental)
+IsExperimental <- subset(IsExperimental, BPL.BLD.ID %in% Pre_score$BPL.BLD.ID)
+IsExperimental <- IsExperimental[with(IsExperimental, order(BPL.BLD.ID)), ]
+```
+
+
+## Load libraries and data
+
+```{r}
+library(data.table)
+library(dplyr)
+library(ggplot2)
+
+logcheck.usage <- fread(input = "./LOGCHECK USERS WITH POST.csv", 
+                        header = TRUE)
+```
+
+### - Check the distribution of LogCheck.Usage
+```{r}
+ggplot(logcheck.usage,aes(LogCheck.Usage))+geom_histogram()+theme_bw()
+summary(logcheck.usage$LogCheck.Usage)
+```
+
+#### - Merge Pre_post and logcheck.usage, and list obs having LogCheck.Usage value 
+```{r}
+pre_post.usage <- merge(Pre_post,logcheck.usage,by='BPL.BLD.ID',all.x = TRUE)
+intersect(Pre_post$BPL.BLD.ID,logcheck.usage$BPL.BLD.ID)
+```
+
+#### - Merge Pre_post.usage and IsExperimental, and list TRUE and FALSE
+```{r}
+# Merge Pre_post.usage and IsExperimental
+pre_post.usage.isexp <- merge(pre_post.usage,IsExperimental,by='BPL.BLD.ID', all.x = TRUE)
+
+summary(pre_post.usage.isexp$LogCheck)
+```
+
+### - Create new df call pre_post.all with all info: usage, isExperimental, group mean (X1, X2, ..., X8), grand mean (Xall)
+```{r}
+pre_post.all <- pre_post.usage.isexp %>%
+  mutate(X1 = rowMeans(select(pre_post.usage.isexp, starts_with("X1")), na.rm = TRUE),
+         X2 = rowMeans(select(pre_post.usage.isexp, starts_with("X2")), na.rm = TRUE),
+         X3 = rowMeans(select(pre_post.usage.isexp, starts_with("X3")), na.rm = TRUE),
+         X4 = rowMeans(select(pre_post.usage.isexp, starts_with("X4")), na.rm = TRUE),
+         X5 = rowMeans(select(pre_post.usage.isexp, starts_with("X5")), na.rm = TRUE),
+         X6 = rowMeans(select(pre_post.usage.isexp, starts_with("X6")), na.rm = TRUE),
+         X7 = rowMeans(select(pre_post.usage.isexp, starts_with("X7")), na.rm = TRUE),
+         X8 = rowMeans(select(pre_post.usage.isexp, starts_with("X8")), na.rm = TRUE),
+         Xall = rowMeans(select(pre_post.usage.isexp, starts_with("X")), na.rm = TRUE))
+```
+
+
+## Wilcoxon-Mann-Whitney tests
+
+```{r wmw_test}
+#create function for WMW
+wmw <- function(coln, group) {
+  col_C <- coln[group == 'FALSE']
+  col_E <- coln[group == 'TRUE']
+  wilcox.test(col_E, col_C, alternative = 'greater')$p.value
+}
+
+#conduct wmw test and save p values as a dataframe 
+wmw.p <- sapply(pre_post.all %>% select(-BPL.BLD.ID, -LogCheck.Usage, -LogCheck), 
+                wmw, group=pre_post.all$LogCheck)
+
+wmw_pvals <- data.frame(name = names(wmw.p), p_val = wmw.p)
+wmw_pvals
+
+ggplot(wmw_pvals,aes(p_val))+
+  geom_histogram()+
+  theme_bw()+
+  ggtitle("Histogram of Wilcoxon-Mann-Whitney test p value")
+
+Filter(function(x) x < .05, wmw.p)
+library(fdrtool)
+fdr.wmw <- p.adjust(wmw.p, method = "BH")
+fdr.wmw[wmw.p < 0.05]
+```
+
