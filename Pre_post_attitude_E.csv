@@ -1,0 +1,36 @@
+BPL.BLD.ID,X1.1,X1.2,X1.3,X1.4,X2.1,X2.2,X2.3,X2.4,X2.5,X3.1,X3.2,X3.3,X3.4,X3.5,X3.6,X3.7,X4.1,X4.2,X4.3,X4.5,X4.6,X4.7,X4.8,X5.1,X5.2,X5.3,X5.4,X5.5,X5.6,X6.1,X6.2,X6.3,X7.1,X7.2,X7.3,X7.4,X8.1,X8.2,X8.3,X8.4,X8.5,A0.3,A0.4,A0.5,A0.56,A0.57,A0.58,A0.59,A0.60,Age,Experience,A0.66,A0.67,A0.68,A0.69,A0.70,A0.71,A0.72,LogCheck
+1003,0,0,0,0,0,0,NA,NA,0,NA,NA,0,NA,NA,NA,NA,-0.6,0,NA,NA,-0.2,NA,NA,0,0,0,NA,NA,NA,0,0,0,NA,NA,NA,0,0.2,NA,NA,NA,NA,Very involved,No,Daily,No,Yes,Yes,No,Yes,55+,10-15Y,Yes,Yes,No,No,Yes,No,No,Y
+1031,0,0,0,0,NA,0,-0.5,0.5,0,NA,NA,0,0,0,0,0,1,0,0,1,0,1,0,0,0,0,NA,NA,NA,0,0,0,1,1,0,0,NA,NA,NA,NA,NA,Very involved,No,Daily,Yes,Yes,Yes,No,Yes,44-54,20+Y,Yes,No,Yes,Yes,Yes,Yes,Yes,Y
+1033,0,0,0,0,0,0,NA,NA,NA,NA,NA,0,0,-0.6,-0.25,NA,NA,0.4,NA,NA,-0.2,0,-0.4,0,0,0,NA,NA,NA,0,0,0,1,1,NA,0,0,NA,NA,NA,NA,Very involved,No,Daily,No,Yes,Yes,No,Yes,55+,15-20Y,Yes,Yes,Yes,Yes,Yes,Yes,No,Y
+1043,0,0,0,0,NA,0,0,NA,0,NA,NA,0,NA,NA,0,NA,NA,0,0,NA,0,0,NA,0,0,0,0,0,NA,NA,NA,0,0,NA,NA,0,NA,NA,NA,NA,NA,Very involved,Yes,Seasonally,Yes,Yes,Yes,No,Yes,35-44,15-20Y,Yes,Yes,Yes,Yes,Yes,Yes,No,Y
+1052,0,0,0,0,0,0,0.25,1,NA,0.25,1,0,0,0,0,0,0.4,0,0,0.6,0,0,0,0.4,0,0,0.25,0,0,1,1,0,0,1,0,0,0,1,1,0,-0.5,Very involved,No,Daily,No,Yes,Yes,Yes,Yes,35-44,10-15Y,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Y
+1055,0,0,0,0,0,0,0.25,1,0,NA,NA,0,0,0,0.25,0,0,0,0,0,-0.4,0,0.4,0,0,0,0,1,0,-1,-1,0,1,1,1,0,NA,NA,NA,NA,NA,Very involved,No,Daily,No,No,No,No,Yes,35-44,15-20Y,NA,No,Yes,Yes,No,Yes,Yes,Y
+1058,0,0,0,0,NA,0,0.25,0,0,NA,0,0,0,0,0.5,-1,0,0,1,1,0,1,0.6,0,0,1,NA,NA,NA,0,0,NA,-0.4,0,0,0,NA,NA,NA,NA,NA,Very involved,No,Daily,No,Yes,Yes,Yes,Yes,44-54,20+Y,Yes,Yes,Yes,Yes,Yes,Yes,No,Y
+1101,0,0,0,0,NA,0,0,0.5,0,0,NA,0,0,0,0,0,-0.4,0,0.6,0.4,NA,0,0,0,0,0,NA,NA,NA,0,0,0,0,1,0.5,0,0,NA,0,-0.25,-0.25,Very involved,No,Daily,NA,Yes,Yes,No,Yes,44-54,10-15Y,Yes,Yes,Yes,Yes,Yes,Yes,No,Y
+1102,0,0,0,0,-1,0,0,0,0,0,0,0.2,0,-0.8,0,0,0.8,0,1,0,0.2,1,0.2,1,0,0,NA,NA,NA,0,1,0,1,1,0,0,NA,NA,NA,NA,NA,Very involved,No,Daily,Yes,No,Yes,No,Yes,44-54,20+Y,Yes,Yes,Yes,Yes,Yes,Yes,No,Y
+1108,0,0,0,0,0,0,-0.5,-0.75,0,0,0,0,0,0,0,0,0,0,0,0.6,NA,-0.6,0.6,0,0,0,NA,NA,NA,0,0,0,0,-1,0,NA,0,0,1,1,1,Somewhat involved,Yes,Daily,Yes,Yes,Yes,Yes,Yes,44-54,5-10Y,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Y
+1111,0,0,0,0,NA,0,0.25,1,NA,0,1,0,0,-1,0,0,0,1,0,1,NA,0,0,0,0,0,NA,1,NA,0,0,0,NA,NA,1,0,NA,NA,NA,NA,NA,Not involved,Yes,Daily,No,Yes,Yes,No,Yes,44-54,20+Y,Yes,Yes,Yes,Yes,Yes,Yes,No,Y
+1115,0,0,0,0,1,0,0,0.75,0,0,1,0,0,0,0.25,0,0,0,0.6,1,0,0.4,0,1,1,0,1,0.4,0,0,0,0,0,1,0,0,NA,NA,NA,NA,NA,Very involved,Yes,Daily,No,Yes,Yes,Yes,Yes,44-54,20+Y,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Y
+1125,0,0,0,0,0,0,NA,NA,NA,1,1,0,0,0,0,0,NA,0,0,NA,NA,NA,NA,0,0,0,NA,NA,NA,1,1,0,1,1,0,0,0,1,0,0,0,Very involved,Yes,Daily,No,Yes,Yes,Yes,Yes,44-54,10-15Y,Yes,Yes,No,No,Yes,Yes,No,Y
+1130,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,NA,1,0,0,1,0,0,1,Very involved,No,Daily,Yes,Yes,Yes,Yes,Yes,44-54,20+Y,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Y
+1132,0,0,0,0,NA,0,NA,NA,0.5,NA,0,0,NA,NA,-0.5,NA,NA,0,NA,0.4,NA,NA,NA,0,0,0,NA,NA,NA,0,0,0,NA,NA,NA,0,NA,NA,NA,NA,NA,Very involved,Yes,Daily,Yes,Yes,Yes,Yes,Yes,55+,10-15Y,Yes,No,No,No,No,Yes,No,Y
+1148,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,1,1,1,0,1,0.4,0,0,0,NA,NA,NA,0,0,0.6,0,1,0.5,0,NA,NA,NA,NA,NA,Very involved,NA,Daily,Yes,Yes,Yes,Yes,Yes,55+,20+Y,Yes,No,Yes,Yes,Yes,No,No,Y
+1150,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0.4,0,0,NA,NA,NA,0,0,0,NA,NA,NA,0,0,0,0,1,NA,0,NA,NA,NA,NA,NA,Very involved,Yes,Daily,Yes,Yes,Yes,Yes,Yes,44-54,15-20Y,Yes,Yes,Yes,Yes,Yes,No,No,Y
+1153,0.25,0,0,0,0,0,NA,NA,NA,NA,NA,0,NA,0,NA,NA,NA,0,0,NA,0.2,0,NA,0,0,0,0,0,NA,NA,NA,NA,NA,NA,NA,0,NA,NA,NA,NA,NA,Very involved,No,Daily,Yes,Yes,Yes,No,Yes,44-54,20+Y,Yes,Yes,No,No,No,Yes,Yes,Y
+1158,0,0,0,0,NA,0,-0.5,1,0,0,0,0,0,0,NA,0,0,0.6,1,0.4,NA,NA,NA,1,1,0,NA,NA,NA,1,1,0,1,1,0,0,NA,NA,NA,NA,NA,Very involved,No,Daily,Yes,Yes,Yes,Yes,Yes,55+,20+Y,Yes,No,Yes,Yes,Yes,Yes,No,Y
+1160,NA,NA,NA,NA,NA,NA,0,0,0,0,-1,NA,NA,NA,0,0,NA,0,0,0,0,0,0,NA,NA,NA,0,0,NA,NA,NA,NA,NA,NA,NA,NA,0,0,0,-1,0,A little involved,No,Daily,Yes,Yes,Yes,No,Yes,35-44,10-15Y,Yes,Yes,Yes,Yes,Yes,Yes,No,Y
+1175,0,0,0,1,0,0,0.25,0,0,0,0,0,1,1,0,0,-0.6,-0.4,-0.2,0,0.4,0,0,0,0,0,0,0,0,0.25,1,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,Very involved,Yes,Daily,No,No,Yes,Yes,Yes,44-54,20+Y,Yes,Yes,No,No,Yes,No,No,Y
+1188,-0.25,-0.25,0,0,0,0,0.5,0,0,0,1,0,-1,0,0,0,-1,0.2,-0.4,-0.4,0,0.6,0.6,0,0,0,0.5,0,0,0,0,0,0,1,0,0,NA,NA,NA,NA,NA,Very involved,Yes,Daily,Yes,Yes,Yes,Yes,Yes,44-54,20+Y,Yes,Yes,No,No,No,No,No,Y
+1195,0,0,0,0,0,0,0.5,0,NA,0,0,0,0,0,0.5,0,NA,1,1,1,0,1,0,0,0,0,0,1,0,0,0,0,0,1,1,0,NA,NA,NA,NA,NA,Very involved,Yes,Daily,No,Yes,Yes,No,Yes,44-54,20+Y,Yes,No,Yes,Yes,Yes,Yes,No,Y
+1203,0,0,0,0,0,0,NA,NA,NA,0,0,0,0,0,0,0,-0.6,0.4,0,0,0.4,0,0.4,0,0,0,0.25,0,0,0,0,0,0,1,1,0,NA,NA,NA,NA,NA,Very involved,Yes,Daily,No,Yes,Yes,Yes,Yes,55+,20+Y,Yes,No,Yes,No,No,No,No,Y
+1206,0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0.25,0,NA,0.2,1,0,0,1,-0.2,0,0,0,NA,NA,NA,0,0,0,0,0,0,0,0,0,0,NA,-1,Very involved,Yes,Daily,Yes,Yes,Yes,Yes,Yes,44-54,20+Y,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Y
+1224,0,0,0,0,0,0,0,-1,0,0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,NA,NA,NA,0,0,0,0,0,NA,0,0.2,0.2,0,0,0,Very involved,Yes,Daily,No,Yes,Yes,Yes,Yes,35-44,10-15Y,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Y
+1226,0,0,0,0,0,0,-0.5,-0.5,0,NA,NA,0,-1,0,0,0,0.6,0,-1,0,NA,-1,0,0.2,0,0,-1,-1,NA,0,-0.5,-0.6,0,0,0,0,NA,NA,NA,NA,NA,Somewhat involved,Yes,Daily,Yes,Yes,Yes,Yes,Yes,44-54,10-15Y,Yes,Yes,No,No,Yes,No,No,Y
+1227,0,0,0,0,0,0,-0.25,0,0,0,0,0,NA,-1,1,0,NA,0,0,0,0,0,NA,0,0,0,NA,NA,NA,-1,-1,0,0,1,0.25,0,0,0,0,NA,0,Very involved,No,Daily,No,Yes,Yes,No,Yes,55+,20+Y,Yes,Yes,No,No,Yes,Yes,Yes,Y
+1282,-0.5,-0.5,0,0,NA,-0.333333333,-0.5,0.5,0,0,0,0,1,0,-0.25,0,0.4,NA,NA,NA,0,NA,NA,-0.6,-0.6,-0.6,NA,NA,NA,NA,NA,-0.6,0.4,0.5,NA,NA,1,1,NA,-1,0,Very involved,Yes,Daily,NA,Yes,Yes,Yes,Yes,55+,10-15Y,Yes,Yes,No,No,Yes,Yes,Yes,Y
+1300,0,0,0,0,NA,0,0.5,0,0,NA,NA,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,NA,0,NA,NA,NA,NA,NA,Somewhat involved,No,Daily,No,No,Yes,Yes,Yes,44-54,20+Y,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Y
+1313,NA,NA,0,NA,NA,NA,NA,NA,NA,0.25,NA,0,0,0,-0.5,0,NA,NA,NA,-0.4,NA,NA,NA,NA,NA,NA,1,1,0,NA,NA,NA,NA,NA,NA,NA,0,0,NA,NA,0,Somewhat involved,Yes,Daily,Yes,Yes,Yes,No,Yes,44-54,20+Y,Yes,Yes,Yes,Yes,Yes,No,No,Y
+1321,0,0,0,0,-1,0,0,0,0,0.5,-0.5,0,0,1,0.25,0,-0.2,0.6,0.6,0,0,0,-0.6,0,0,0,1,NA,NA,0,0,0,0,0,1,0,-0.2,-1,0.5,-1,-0.5,A little involved,Yes,Daily,Yes,No,No,No,Yes,55+,20+Y,Yes,Yes,No,Yes,Yes,No,No,Y
+1322,0,-0.25,0,0,NA,0,NA,-1,-1,NA,NA,0,NA,0,0,NA,NA,-0.2,-0.2,0,-0.2,-0.4,0,0,0,-0.2,0,-0.2,1,0,-0.25,-0.2,-0.2,-0.25,NA,0,-0.2,-1,-0.75,-0.75,NA,Very involved,Yes,Daily,No,Yes,Yes,No,Yes,44-54,15-20Y,Yes,Yes,Yes,Yes,Yes,Yes,No,Y
+1323,0,0,0,0,0,0,0,-0.5,0,NA,0.5,0,0,0.8,0.5,NA,NA,0,0,-0.6,0.4,0,-1,0,0,0,0.5,NA,-1,0.75,0,0,0,0,0,0,1,0,0,0,0,Somewhat involved,No,Daily,No,Yes,Yes,No,Yes,55+,20+Y,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Y
+1328,0,0.25,0,0,1,0,0,0,-1,NA,NA,0,NA,1,0,NA,0,0,-1,1,0,-0.4,0.6,0,0,0,NA,NA,NA,0,0,0,0,0,NA,0,-1,0,NA,NA,NA,Somewhat involved,NA,Daily,Yes,Yes,Yes,No,Yes,55+,15-20Y,Yes,Yes,Yes,Yes,Yes,Yes,No,Y

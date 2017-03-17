@@ -1,0 +1,66 @@
+---
+title: "Untitled"
+author: "Honey Berk"
+date: "March 16, 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(data.table)
+library(dplyr)
+library(ggplot2)
+
+
+# Load data 
+
+post.attitude <- fread(input = "./REVISED_FINAL_POST_ATTITUDE_rename.csv", 
+                       header = TRUE, stringsAsFactors = TRUE)
+Pre_post <- fread(input = "./Pre_post.csv", 
+                  header = TRUE, stringsAsFactors = TRUE)
+
+# merge pre_post and post.attitude
+pre_post.attitude <- merge(Pre_post,post.attitude,by='BPL.BLD.ID', all.x = TRUE)
+
+# select E group 
+pre_post.attitude_E <- pre_post.attitude %>% 
+  filter(LogCheck == "Y")
+```
+
+####
+
+
+```{r}
+# ONE - NO TECH, NO AGE OR EXPERIENCE
+all_pvals <- data.frame(varname=as.character(), col=as.character(), p_val=as.numeric())
+
+for (col in names(pre_post.attitude_E)[grep("X", names(pre_post.attitude_E))]) {
+  # cat(col, ":\n")
+  smy <- summary(lm(paste(col, "~ A0.3 + A0.4 + A0.56 + A0.57 + A0.58 + A0.59 + Age + Experience + A0.68 + A0.69"), 
+                    data = pre_post.attitude_E))
+
+  all_pvals <- rbind(all_pvals, 
+                       data.frame(varname = names(smy$coefficients[,4]), col = col, p_val = smy$coefficients[,4]))
+  
+
+}
+
+```
+
+```{r}
+
+hist(all_pvals$p_val)
+all_pvals %>% filter(p_val < .05)
+
+```
+
+```{r}
+
+
+p.adjust(all_pvals$p_val, method = "BH")
+p.adjust(all_pvals$p_val[all_pvals$p_val < 0.05], method = "BH")
+
+```
+
+smy
