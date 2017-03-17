@@ -3,6 +3,7 @@ title: "Untitled"
 author: "Honey Berk"
 date: "March 16, 2017"
 output:
+  word_document: default
   pdf_document: default
   html_document: default
 ---
