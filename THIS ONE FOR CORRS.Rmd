@@ -32,19 +32,26 @@ pre_post.attitude_E <- pre_post.attitude %>%
 
 
 ```{r}
+library(broom)
 # ONE - NO TECH, NO AGE OR EXPERIENCE
-all_pvals <- data.frame(varname=as.character(), col=as.character(), p_val=as.numeric())
+all_pvals <- data.frame(varname=as.character(), col=as.character(), coefest=as.numeric(), p_val=as.numeric())
+
+overall_stats <- data.frame(col=as.character(), MultR2=as.numeric(), AdjR2=as.numeric(), p_val=as.numeric())
 
 for (col in names(pre_post.attitude_E)[grep("X", names(pre_post.attitude_E))]) {
   # cat(col, ":\n")
-  smy <- summary(lm(paste(col, "~ A0.3 + A0.4 + A0.56 + A0.57 + A0.58 + A0.59 + Age + Experience + A0.68 + A0.69"), 
-                    data = pre_post.attitude_E))
+  lmodel <- lm(paste(col, "~ A0.3 + A0.4 + A0.56 + A0.57 + A0.58 + A0.59 + Age + Experience + A0.68 + A0.69"), data = pre_post.attitude_E)
+  smy <- summary(lmodel)
 
-  all_pvals <- rbind(all_pvals, 
-                       data.frame(varname = names(smy$coefficients[,4]), col = col, p_val = smy$coefficients[,4]))
-  
-
+  all_pvals <- rbind(all_pvals, data.frame(varname = names(smy$coefficients[,4]), col = col, coefest = smy$coefficients[,1], p_val = smy$coefficients[,4]))
+  overall_stats <- rbind(overall_stats, data.frame(col = col,  MultR2 = glance(lmodel)$r.squared, AdjR2 = glance(lmodel)$adj.r.squared, p_val = glance(lmodel)$p.value))
 }
+
+overall_stats$q_val <- p.adjust(overall_stats$p_val, method = "BH")
+overall_stats
+
+all_pvals$adjusted <- p.adjust(all_pvals$p_val, method = "BH")
+subset(all_pvals, p_val < 0.05)
 
 ```
 
@@ -54,13 +61,3 @@ hist(all_pvals$p_val)
 all_pvals %>% filter(p_val < .05)
 
 ```
-
-```{r}
-
-
-p.adjust(all_pvals$p_val, method = "BH")
-p.adjust(all_pvals$p_val[all_pvals$p_val < 0.05], method = "BH")
-
-```
-
-smy
