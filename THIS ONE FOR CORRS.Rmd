@@ -51,7 +51,8 @@ overall_stats$q_val <- p.adjust(overall_stats$p_val, method = "BH")
 overall_stats
 
 all_pvals$adjusted <- p.adjust(all_pvals$p_val, method = "BH")
-subset(all_pvals, p_val < 0.05)
+signif_coefficients <- subset(all_pvals, p_val < 0.05)
+signif_coefficients
 
 ```
 
