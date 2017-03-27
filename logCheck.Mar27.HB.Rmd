@@ -1,0 +1,291 @@
+---
+title: "LogCheck"
+author: "Chuan Hong"
+date: "3/15/2017"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+```
+
+## Data import and munge
+
+```{r}
+library(car)
+
+POST <- read.csv("REVISED_FINAL_POST_OM.csv",header = TRUE,sep = ",",stringsAsFactors = FALSE)
+PRE <- read.csv("REVISED_FINAL_PRE_OM.csv",header = TRUE,sep = ",",stringsAsFactors = FALSE)
+
+Post_proc <- lapply(POST, FUN = function(foo) car::recode(foo, "'Never' = 0 ; 'Annually' = 1 ; 'Seasonally' = 2 ; 'Monthly' = 3 ; 'Weekly' = 4 ; 'Daily' = 5 ; 'Not applicable' = NA ; 'Not Applicable' = NA ; 'No logging' = NA ; 'No understanding' = NA ; '' = NA ; 'Y' = T", as.numeric.result = T, as.factor.result = F))
+Post_proc <- data.frame(Post_proc)
+IsExperimental = Post_proc[2:nrow(Post_proc),c(1,ncol(Post_proc))]
+cutdown <- ncol(Post_proc)-3
+Post_proc <- Post_proc[,1:cutdown]
+best_prac <- as.vector(Post_proc[1,2:cutdown],mode='numeric')
+best_prac = append(1, best_prac)
+Post_proc <- Post_proc[2:nrow(Post_proc), ]
+
+Pre_proc <- lapply(PRE, FUN = function(foo) car::recode(foo, "'Never' = 0 ; 'never' = 0 ; 'Annually' = 1 ; 'Seasonally' = 2 ; 'Monthly' = 3 ; 'Weekly' = 4 ; 'Daily' = 5 ; 'Not applicable' = NA ; 'Not Applicable' = NA ; 'Multiple answer' = NA ; 'Mulitple answer' = NA ; 'As needed' = NA ; 'No logging' = NA ; 'No understanding' = NA ; 'NR' = NA ; '' = NA", as.numeric.result = T, as.factor.result = F))
+Pre_proc <- data.frame(Pre_proc)
+cutdown <- ncol(Pre_proc)-2
+Pre_proc <- Pre_proc[2:nrow(Pre_proc),1:cutdown]
+
+Post_proc2 <- subset(Post_proc, BPL.BLD.ID %in% Pre_proc$BPL.BLD.ID)
+Pre_proc2 <- subset(Pre_proc, BPL.BLD.ID %in% Post_proc$BPL.BLD.ID)
+Post_score <- data.frame(mapply(`/`,Post_proc2,best_prac))
+Pre_score <- data.frame(mapply(`/`,Pre_proc2,best_prac))
+Pre_score <- Pre_score[with(Pre_score, order(BPL.BLD.ID)), ]
+Post_score <- Post_score[with(Post_score, order(BPL.BLD.ID)), ]
+Pre_score[1000 > Pre_score & Pre_score > 1] <- 1
+Post_score[1000 > Post_score & Post_score > 1] <- 1
+
+Pre_post = Post_score - Pre_score
+Pre_post[,1] = Pre_score[,1]
+
+IsExperimental <- lapply(POST[2:nrow(POST),c(1,ncol(POST))], FUN = function(foo) car::recode(foo, "'' = F ; 'Y' = T", as.numeric.result = T, as.factor.result = F))
+IsExperimental <- data.frame(IsExperimental)
+IsExperimental <- subset(IsExperimental, BPL.BLD.ID %in% Pre_score$BPL.BLD.ID)
+IsExperimental <- IsExperimental[with(IsExperimental, order(BPL.BLD.ID)), ]
+```
+
+
+## Load libraries and data
+
+```{r}
+library(data.table)
+library(dplyr)
+library(ggplot2)
+
+logcheck.usage <- fread(input = "./LOGCHECK USERS WITH POST.csv", 
+                        header = TRUE)
+```
+
+### - Check the distribution of LogCheck.Usage
+```{r}
+ggplot(logcheck.usage,aes(LogCheck.Usage))+geom_histogram()
+summary(logcheck.usage$LogCheck.Usage)
+```
+
+#### - Merge Pre_post and logcheck.usage, and list obs having LogCheck.Usage value 
+```{r}
+pre_post.usage <- merge(Pre_post,logcheck.usage,by='BPL.BLD.ID',all.x = TRUE)
+intersect(Pre_post$BPL.BLD.ID,logcheck.usage$BPL.BLD.ID)
+```
+
+#### - Merge Pre_post.usage and IsExperimental, and list TRUE and FALSE
+```{r}
+# Merge Pre_post.usage and IsExperimental
+pre_post.usage.isexp <- merge(pre_post.usage,IsExperimental,by='BPL.BLD.ID', all.x = TRUE)
+
+summary(pre_post.usage.isexp$LogCheck)
+```
+
+### - Create new df call pre_post.all with all info: usage, isExperimental, group mean (X1, X2, ..., X8), grand mean (Xall)
+```{r}
+pre_post.all <- pre_post.usage.isexp %>%
+  mutate(X1 = rowMeans(select(pre_post.usage.isexp, starts_with("X1")), na.rm = TRUE),
+         X2 = rowMeans(select(pre_post.usage.isexp, starts_with("X2")), na.rm = TRUE),
+         X3 = rowMeans(select(pre_post.usage.isexp, starts_with("X3")), na.rm = TRUE),
+         X4 = rowMeans(select(pre_post.usage.isexp, starts_with("X4")), na.rm = TRUE),
+         X5 = rowMeans(select(pre_post.usage.isexp, starts_with("X5")), na.rm = TRUE),
+         X6 = rowMeans(select(pre_post.usage.isexp, starts_with("X6")), na.rm = TRUE),
+         X7 = rowMeans(select(pre_post.usage.isexp, starts_with("X7")), na.rm = TRUE),
+         X8 = rowMeans(select(pre_post.usage.isexp, starts_with("X8")), na.rm = TRUE),
+         Xall = rowMeans(select(pre_post.usage.isexp, starts_with("X")), na.rm = TRUE))
+```
+
+
+## One Tailed Two-sample t-tests 
+
+```{r t_test}
+ttest <- function(coln,group){
+  col_C <- coln[group == 'FALSE']
+  col_E <- coln[group == 'TRUE']
+  t.test(col_E,col_C,alternative = 'greater')$p.value
+}
+
+ttest.p <- sapply(pre_post.all %>% select(-BPL.BLD.ID, -LogCheck.Usage, -LogCheck), 
+                  function(x) ttest(x, pre_post.usage.isexp$LogCheck))
+
+hist(ttest.p,width=5)
+signif_p <- Filter(function(x) x < .05, ttest.p)
+signif_p
+```
+
+## Pearson's Correlation 
+
+Note: Weakly positive correlations are observed between LogCheck.Usage and X1.1, X2.5, X4.3, X4.6, X8.1. 
+
+```{r}
+pre_post.all_E <- pre_post.all %>% 
+  filter(LogCheck == "TRUE") %>%
+  select(-BPL.BLD.ID, -LogCheck)
+
+pcor_e <- sapply(pre_post.all_E %>% select(-LogCheck.Usage),
+       function(x) cor(x, pre_post.all_E$LogCheck.Usage,
+                       method = "pearson", 
+                       use = "pairwise.complete.obs"))
+
+ggplot(data.frame(cor = pcor_e), aes(cor)) + 
+  geom_histogram(aes(fill = ..count..))+
+  theme_bw() + ggtitle("Pearson's Correlation")
+Filter(function(x) x > .2, pcor_e)
+```
+
+
+## Linear Regression
+
+NOT EXECUTED.
+
+```{r, eval = F, echo = F}
+p_vals <- data.frame(col=as.character(), p_val=as.numeric())
+
+for (col in names(pre_post.all_E)[grep("X", names(pre_post.all_E))]) {
+  cat(col, ":\n")
+  smy <- summary(lm(paste(col, "~ LogCheck.Usage"), data = pre_post.all_E))
+  p_vals <- rbind(p_vals, data.frame(col = col, p_val = smy$coefficient[2,4]))
+  print(smy)
+}
+
+hist(p_vals$p_val)
+p_vals %>% filter(p_val < .05)
+```
+
+## FDR 
+```{r}
+library(fdrtool)
+fdr.t_pval <- fdrtool(ttest.p[complete.cases(ttest.p)], statistic = "pvalue")
+data.frame(qval = fdr.t_pval$qval, lfdr = fdr.t_pval$lfdr)[names(signif_p),]
+```
+
+## 3/15/17 update
+### 1) Table of p-values for each of the 40+ individual behaviors and the groups of behaviors and histogram 
+
+```{r}
+ttest_pvals <- data.frame(name = names(ttest.p), p_val = ttest.p)
+ttest_pvals
+
+ggplot(ttest_pvals,aes(p_val))+
+  geom_histogram()+
+  theme_bw()+
+  ggtitle("Histogram of one-tailed t-test p values")
+```
+
+### 3) Table of all means, SDs and SEMs
+### 4) Table of all mean differences
+
+```{r}
+library(tibble)
+library(dplyr)
+
+sem <- function(x, ...) {
+  sd(x, ...)/sqrt(length(na.omit(x)))
+}
+
+pre_post.stat <- pre_post.all %>%
+  group_by(LogCheck) %>%
+  summarise_at(vars(matches("X")), funs(mean, sd, sem), na.rm = TRUE) %>%
+  mutate(logc = ifelse(LogCheck == TRUE, "Exp", "Ctl")) %>%
+  column_to_rownames(var="logc") %>%
+  select(-LogCheck)
+```
+
+```{r}
+library(data.table)
+library(tidyr)
+
+pre_post.stat.rshaped <- as.data.frame(t(pre_post.stat)) %>% 
+  rownames_to_column("feature")  %>%
+  separate(col = feature, into = c("feature", "measure"), sep = "_") %>%
+  setDT() %>%
+  dcast(feature ~ measure, value.var = c("Exp", "Ctl")) %>%
+  mutate(mean_diff = Exp_mean - Ctl_mean)
+
+pre_post.stat.rshaped #Show all means, SDs, SEMs, mean differences in Exp and Ctl group
+```
+
+### 2) Paired bar chart with SEM whiskers or significant and marginally significant results -- a separate one for groups, and markings for significance and high significance. (Bar chart should have means.)
+
+```{r}
+library(ggplot2)
+
+pre_post.stat.mean <- pre_post.stat.rshaped %>% 
+  select(feature, Exp_mean, Ctl_mean, Exp_sem, Ctl_sem) %>%
+  gather(Exp_mean, Ctl_mean, key = "group", value = "mean") %>%
+  mutate(sem = ifelse(group == "Exp_mean", Exp_sem, Ctl_sem),
+         group = substr(group, 1, 3)) %>%
+  select(-Exp_sem, -Ctl_sem) %>%
+  merge(data.frame(feature = names(ttest.p), p_val = ttest.p),by='feature', all.x = TRUE) %>%
+  mutate(sig_level = ifelse(p_val > .1, "", ifelse(p_val > .05, "*", "**")))
+
+# Barchart for individuals (*:p<0.1 **:p<0.05)
+pre_post.stat.mean %>%
+  filter(grepl("^X\\d\\.\\d$", feature)) %>%
+  ggplot(aes(x = feature, y = mean, fill = group)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), position = position_dodge(0.9)) +
+  geom_text(aes(label=sig_level), position = position_dodge(0.9)) +
+  theme_bw()+theme(axis.text.x = element_text(angle = 60, hjust = 1))+theme(legend.position="bottom") +
+  ggtitle("Paired bar chart for all individual features with SEM whiskers")
+
+# Barchart for groups (*:p<0.1 **:p<0.05)
+pre_post.stat.mean %>%
+  filter(grepl("^X\\d$", feature)) %>%
+  ggplot(aes(x = feature, y = mean, fill = group)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
+                position = position_dodge(0.9),
+                width =.5) +
+  geom_text(aes(label=sig_level),position = position_dodge(0.9))+
+  theme_bw()+theme(legend.position="bottom") +
+  ggtitle("Paired bar chart for groups with SEM whiskers")
+
+# Barchart for individuals and groups with p < 0.05
+pre_post.stat.mean %>%
+  filter(feature %in% c("X3.1", "X3.6", "X4.5", "X5.4", "X5.5", "X7.2", "X7.3", "X7")) %>%
+  ggplot(aes(x = feature, y = mean, fill = group)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
+                position = position_dodge(0.9),
+                width = .5) +
+  theme_bw()+
+  ggtitle("Paired bar chart for significant features with SEM whiskers")
+```
+
+### 5)  Table of frequencies for the responses in the PRE dataset only? It can be from the CORRECTED PRE data file and have daily, weekly, etc. instead of the numerical values. Also, with the PRE table of frequencies, flag the Experimental participants in the table?
+
+1. For all observations
+```{r}
+freq <- function(x) table(x) / length(x)
+PRE_cleaned <- PRE %>% 
+  select(starts_with("X")) %>%
+  mutate_all(function(x) ifelse(x %in% c("Daily", "Weekly", "Monthly", "Seasonally", "Annually", "Never"), x, "NA"))
+
+do.call(gtools::smartbind, lapply(PRE_cleaned, freq)) %>% 
+  select(Daily, Weekly, Monthly, Seasonally, Annually, Never, `NA`)
+```
+
+2. Experimental group 
+```{r}
+PRE_cleaned_E <- PRE %>% 
+  filter(BPL.BLD.ID %in% logcheck.usage$BPL.BLD.ID) %>%
+  select(starts_with("X")) %>%
+  mutate_all(function(x) ifelse(x %in% c("Daily", "Weekly", "Monthly", "Seasonally", "Annually", "Never"), x, "NA"))
+do.call(gtools::smartbind, lapply(PRE_cleaned_E, freq)) %>% 
+  select(Daily, Weekly, Monthly, Seasonally, Annually, Never, `NA`)
+```
+
+3. Control group
+```{r}
+PRE_cleaned_C <- PRE %>% 
+  filter(!BPL.BLD.ID %in% logcheck.usage$BPL.BLD.ID) %>%
+  select(starts_with("X")) %>%
+  mutate_all(function(x) ifelse(x %in% c("Daily", "Weekly", "Monthly", "Seasonally", "Annually", "Never"), x, "NA"))
+
+do.call(gtools::smartbind, lapply(PRE_cleaned_C, freq)) %>% 
+  select(Daily, Weekly, Monthly, Seasonally, Annually, Never, `NA`)
+```
