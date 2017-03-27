@@ -246,7 +246,7 @@ pre_post.stat.mean %>%
 
 # Barchart for individuals and groups with p < 0.05
 pre_post.stat.mean %>%
-  filter(feature %in% c("X3.1", "X3.6", "X4.5", "X5.4", "X5.5", "X7.2", "X7.3", "X7")) %>%
+  filter(feature %in% c("X3.1", "X3.6", "X4.5", "X5.4", "X5.5", "X7.2", "X7.3", "X5", "X7")) %>%
   ggplot(aes(x = feature, y = mean, fill = group)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
@@ -288,14 +288,4 @@ PRE_cleaned_C <- PRE %>%
 
 do.call(gtools::smartbind, lapply(PRE_cleaned_C, freq)) %>% 
   select(Daily, Weekly, Monthly, Seasonally, Annually, Never, `NA`)
-```
-
-### 6) Filter out sub-behaviors where pre was > 90% best practice
-```{r}
-
-for(i in colnames(Pre_score[,2:ncol(Pre_score)])){
-  a <- ftable(Pre_score[[i]] == 1)
-  if (a[1]/sum(a) <= 0.1){print(i)}
-  }
-
 ```
