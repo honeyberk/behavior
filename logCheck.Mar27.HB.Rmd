@@ -289,3 +289,13 @@ PRE_cleaned_C <- PRE %>%
 do.call(gtools::smartbind, lapply(PRE_cleaned_C, freq)) %>% 
   select(Daily, Weekly, Monthly, Seasonally, Annually, Never, `NA`)
 ```
+
+### 6) Filter out sub-behaviors where pre was > 90% best practice
+```{r}
+
+for(i in colnames(Pre_score[,2:ncol(Pre_score)])){
+  a <- ftable(Pre_score[[i]] == 1)
+  if (a[1]/sum(a) <= 0.1){print(i)}
+  }
+
+```
