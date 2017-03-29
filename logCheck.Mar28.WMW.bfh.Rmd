@@ -17,8 +17,8 @@ knitr::opts_chunk$set(message = FALSE)
 ```{r}
 library(car)
 
-POST <- read.csv("REVISED_FINAL_POST_OM.csv",header = TRUE,sep = ",",stringsAsFactors = FALSE)
-PRE <- read.csv("REVISED_FINAL_PRE_OM.csv",header = TRUE,sep = ",",stringsAsFactors = FALSE)
+POST <- read.csv("REVISED_FINAL_POST_OM - PRE-QREMOVAL.csv",header = TRUE,sep = ",",stringsAsFactors = FALSE)
+PRE <- read.csv("REVISED_FINAL_PRE_OM - PRE-QREMOVAL.csv",header = TRUE,sep = ",",stringsAsFactors = FALSE)
 
 Post_proc <- lapply(POST, FUN = function(foo) car::recode(foo, "'Never' = 0 ; 'Annually' = 1 ; 'Seasonally' = 2 ; 'Monthly' = 3 ; 'Weekly' = 4 ; 'Daily' = 5 ; 'Not applicable' = NA ; 'Not Applicable' = NA ; 'No logging' = NA ; 'No understanding' = NA ; '' = NA ; 'Y' = T", as.numeric.result = T, as.factor.result = F))
 Post_proc <- data.frame(Post_proc)
@@ -75,14 +75,31 @@ summary(pre_post.isexp$LogCheck)
 
 ```{r}
 
+deleted_behaviors <- c()
+Pre_score.filtered <- Pre_score
 for(i in colnames(Pre_score[,2:ncol(Pre_score)])){
-a <- ftable(Pre_score[[i]] == 1)
-if (a[2]/sum(a) > 0.75){print(i)
-  pre_post.isexp[, i] <- NULL}}
+isone <- na.omit(Pre_score[[i]]) == 1
+a <- ftable(isone)
+if (a[2]/sum(a) > 0.75 | all(isone)){
+  deleted_behaviors <- c(deleted_behaviors,i)
+  pre_post.isexp[, i] <- NULL
+  Pre_score.filtered[, i] <- NULL}}
 
-
+deleted_behaviors
 ```
-
+### - Do histograms of pre scores
+```{r pre hist}
+prehist <- vector(mode="list", length=5)
+names(prehist) <- c("histogram", "maxfreq", "ndigits", "multiplier", "rounded")
+par(mfrow=c(1,2))
+prehist$histogram <- hist(unlist(Pre_score[,2:ncol(Pre_score)]), plot=FALSE)
+prehist$maxfreq <- max(prehist$histogram$counts)
+prehist$ndigits <- nchar(as.character(prehist$maxfreq))
+prehist$multiplier <- 10^(prehist$ndigits-2)
+prehist$rounded <- ceiling(prehist$maxfreq/prehist$multiplier)*prehist$multiplier
+plot(prehist$histogram, main="(A) Scores Before Filtering", xlab="Behavior Compliance Score",ylim = c(0, prehist$rounded))
+prehist2 <- hist(unlist(Pre_score.filtered[,2:ncol(Pre_score.filtered)]), main="(B) Scores After Filtering", xlab="Behavior Compliance Score", ylim = c(0, prehist$rounded))
+```
 ### - Create new df call pre_post.all with all info: usage, isExperimental, group mean (X1, X2, ..., X8), grand mean (Xall)
 ```{r}
 pre_post.all <- pre_post.isexp %>%
@@ -180,11 +197,6 @@ pre_post.stat.rshaped <- as.data.frame(t(pre_post.stat)) %>%
 pre_post.stat.rshaped #Show all means, SDs, SEMs, mean differences in Exp and Ctl group
 orderedbehaviors <- pre_post.stat.rshaped[with(pre_post.stat.rshaped, order(-mean_diff)), c(1,8)]
 
-```
-
-### 2) Paired bar chart with SEM whiskers or significant and marginally significant results -- a separate one for groups, and markings for significance and high significance. (Bar chart should have means.)
-
-```{r}
 library(ggplot2)
 
 pre_post.stat.mean <- pre_post.stat.rshaped %>% 
@@ -196,47 +208,9 @@ pre_post.stat.mean <- pre_post.stat.rshaped %>%
   merge(data.frame(Behavior = names(ttest.p), p_val = ttest.p),by='Behavior', all.x = TRUE) %>%
   mutate(sig_level = ifelse(p_val > .1, "", ifelse(p_val > .05, "*", "**")))
 
-
-lvl <- orderedbehaviors$Behavior
-lvl <- lvl[length(lvl):1]
-pre_post.stat.mean.ordered <- pre_post.stat.mean
-pre_post.stat.mean.ordered <- within(pre_post.stat.mean.ordered, Behavior <- factor(Behavior, levels=lvl))
-
-# Barchart for individuals (*:p<0.1 **:p<0.05)
-pre_post.stat.mean.ordered %>%
-  filter(grepl("^X\\d\\.\\d$", Behavior)) %>%
-  ggplot(aes(x = Behavior, y = mean, fill = group)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), position = position_dodge(0.9)) +
-  geom_text(aes(label=sig_level), position = position_dodge(0.9)) +
-  theme_bw()+coord_flip()+theme(legend.position="bottom") +
-  ggtitle("Paired bar chart for all individual Behaviors with SEM whiskers")
-
-# Barchart for groups (*:p<0.1 **:p<0.05)
-pre_post.stat.mean %>%
-  filter(grepl("^X\\d$", Behavior)) %>%
-  ggplot(aes(x = Behavior, y = mean, fill = group)) +
-  geom_bar(stat = "identity", position = "dodge") + 
-  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
-                position = position_dodge(0.9),
-                width =.5) +
-  geom_text(aes(label=sig_level),position = position_dodge(0.9))+
-  theme_bw()+theme(legend.position="bottom") +
-  ggtitle("Paired bar chart for groups with SEM whiskers")
-
-# Barchart for individuals and groups with p < 0.05
-
-pre_post.stat.mean %>%
-  filter(Behavior %in% as.character(pvals[pvals$tp_val < 0.05, ]$name)) %>%
-  ggplot(aes(x = Behavior, y = mean, fill = group)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
-                position = position_dodge(0.9),
-                width = .5) +
-  theme_bw()+
-  ggtitle("Paired bar chart for significant Behaviors with SEM whiskers")
 ```
-## Make df for plotting
+
+## Make df for beanplotting
 
 ```{r}
 
@@ -296,3 +270,66 @@ axis(4, at=1:length(lvl), labels=FALSE)
 print(plot1, vp=vp.BottomRight)
 
 ```
+
+### 2) Paired bar chart with SEM whiskers or significant and marginally significant results -- a separate one for groups, and markings for significance and high significance. (Bar chart should have means.)
+
+```{r}
+
+lvl <- orderedbehaviors$Behavior
+lvl <- lvl[length(lvl):1]
+pre_post.stat.mean.ordered <- pre_post.stat.mean
+pre_post.stat.mean.ordered <- within(pre_post.stat.mean.ordered, Behavior <- factor(Behavior, levels=lvl))
+
+# Barchart for individuals (*:p<0.1 **:p<0.05)
+#pre_post.stat.mean.ordered %>%
+#  filter(grepl("^X\\d\\.\\d$", Behavior)) %>%
+#  ggplot(aes(x = Behavior, y = mean, fill = group)) +
+#  geom_bar(stat = "identity", position = "dodge") +
+#  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), position = position_dodge(0.9)) +
+#  geom_text(aes(label=sig_level), position = position_dodge(0.9)) +
+#  theme_bw()+coord_flip()+theme(legend.position="bottom") +
+#  ggtitle("Paired bar chart for all individual Behaviors with SEM whiskers")
+
+# Barchart for groups (*:p<0.1 **:p<0.05)
+pre_post.stat.mean %>%
+  filter(grepl("^X\\d$", Behavior)) %>%
+  ggplot(aes(x = Behavior, y = mean, fill = group)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  scale_fill_manual(values=col2hex(c("purple","orange"))) +
+  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
+                position = position_dodge(0.9),
+                width =.5) +
+  geom_text(aes(label=sig_level),position = position_dodge(0.9))+
+  theme_bw()+theme(legend.position="bottom") +
+  ylab("Mean Improvement")+
+  ggtitle("Improvement on Aggregate Behaviors")
+
+# Barchart for individuals and groups with p < 0.05
+
+pre_post.stat.mean %>%
+  filter(Behavior %in% as.character(pvals[pvals$tp_val < 0.05, ]$name)) %>%
+  ggplot(aes(x = Behavior, y = mean, fill = group)) +
+  scale_fill_manual(values=col2hex(c("purple","orange"))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
+                position = position_dodge(0.9),
+                width = .5) +
+  theme_bw()+theme(legend.position="bottom")+
+  ylab("Mean Improvement")+
+  ggtitle("Behaviors with Significant (p=0.05) Improvement")
+
+# Barchart for all
+
+pre_post.stat.mean %>%
+  filter(grepl("^Xall$", Behavior)) %>%
+  ggplot(aes(x = Behavior, y = mean, fill = group)) +
+  scale_fill_manual(values=col2hex(c("purple","orange"))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
+                position = position_dodge(0.9),
+                width = .5) +
+  theme_bw()+theme(legend.position="bottom")+
+  ylab("Mean Improvement")+
+  ggtitle("Overall Improvement on Tracked Behaviors")
+```
+
