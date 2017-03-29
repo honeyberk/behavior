@@ -77,7 +77,8 @@ summary(pre_post.isexp$LogCheck)
 
 for(i in colnames(Pre_score[,2:ncol(Pre_score)])){
 a <- ftable(Pre_score[[i]] == 1)
-if (a[2]/sum(a) > 0.75){pre_post.isexp[, i] <- NULL}}
+if (a[2]/sum(a) > 0.75){print(i)
+  pre_post.isexp[, i] <- NULL}}
 
 
 ```
@@ -236,13 +237,12 @@ pre_post.stat.mean %>%
 foruse <- pre_post.all %>% 
   mutate(Group = ifelse(LogCheck == TRUE, "LogCheck", "Control")) %>%
   subset(select = -LogCheck)
-foruse
 plotframe <- data.frame(BPL.BLD.ID=integer(),
                  Improvement=double(), 
                  Behavior=character(), 
                  Group=character(),
                  stringsAsFactors=FALSE)
-for (behavior in pre_post.stat.rshaped$Behavior){
+for (behavior in orderedbehaviors$Behavior){
   newdf <- filter_(foruse,paste(behavior," > -10"))
   newdf <- newdf[,c("BPL.BLD.ID", behavior, "Group")]
   names(newdf)[names(newdf)==behavior] <- "Improvement"
@@ -251,8 +251,13 @@ for (behavior in pre_post.stat.rshaped$Behavior){
 
 plotframe$Behavior <- as.factor(plotframe$Behavior)
 
+```
+
+#Do beanplot
+```{r}
+library(beanplot)
 beanplot(Improvement ~ reorder(Group, Improvement, mean) * Behavior, bw="nrd0", data = plotframe,
-         side = "b", col = list("yellow", "orange"), border = c("yellow2","darkorange"), main = "Improvement on Each Behavior", xlab = "Behavior", ylab = "Improvement", ylim = c(-2,2), yaxs = "i")
+         side = "b", horizontal = TRUE, col = list("yellow", "orange"), border = c("yellow2","darkorange"), main = "Improvement on Each Behavior", xlab = "Behavior", ylab = "Improvement", ylim = c(-1.5,1.5), yaxs = "i")
 legend("bottomright", bty="n",c("Control", "LogCheck"),
        fill = c("yellow", "orange"))
   
