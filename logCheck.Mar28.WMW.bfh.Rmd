@@ -248,6 +248,11 @@ library(beanplot)
 library(grid)
 library(gplots)
 
+lvl <- orderedbehaviors$Behavior
+lvl <- lvl[length(lvl):1]
+pre_post.stat.mean.ordered <- pre_post.stat.mean
+pre_post.stat.mean.ordered <- within(pre_post.stat.mean.ordered, Behavior <- factor(Behavior, levels=lvl))
+
 plot1 <- pre_post.stat.mean.ordered %>%
   ggplot(aes(x = Behavior, y = mean, fill = group)) +
   geom_bar(stat = "identity", position = "dodge") + 
@@ -281,22 +286,6 @@ print(plot1, vp=vp.BottomRight)
 
 ```{r}
 
-lvl <- orderedbehaviors$Behavior
-lvl <- lvl[length(lvl):1]
-pre_post.stat.mean.ordered <- pre_post.stat.mean
-pre_post.stat.mean.ordered <- within(pre_post.stat.mean.ordered, Behavior <- factor(Behavior, levels=lvl))
-
-# Barchart for individuals (*:p<0.1 **:p<0.05)
-#pre_post.stat.mean.ordered %>%
-#  filter(grepl("^X\\d\\.\\d$", Behavior)) %>%
-#  ggplot(aes(x = Behavior, y = mean, fill = group)) +
-#  geom_bar(stat = "identity", position = "dodge") +
-#  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), position = position_dodge(0.9)) +
-#  geom_text(aes(label=sig_level), position = position_dodge(0.9)) +
-#  theme_bw()+coord_flip()+theme(legend.position="bottom") +
-#  ggtitle("Paired bar chart for all individual Behaviors with SEM whiskers")
-
-# Barchart for groups (*:p<0.1 **:p<0.05)
 pre_post.stat.mean %>%
   filter(grepl("^X\\d$", Behavior)) %>%
   ggplot(aes(x = Behavior, y = mean, fill = group)) +
