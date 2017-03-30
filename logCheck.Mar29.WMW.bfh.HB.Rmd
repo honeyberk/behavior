@@ -1,0 +1,351 @@
+---
+title: "LogCheck"
+author: "Chuan Hong"
+date: "3/16/2017"
+output:
+html_document: default
+pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+```
+
+## Data import and munge
+
+```{r}
+library(car)
+
+POST <- read.csv("REVISED_FINAL_POST_OM - PRE-QREMOVAL.csv",header = TRUE,sep = ",",stringsAsFactors = FALSE)
+PRE <- read.csv("REVISED_FINAL_PRE_OM - PRE-QREMOVAL.csv",header = TRUE,sep = ",",stringsAsFactors = FALSE)
+
+Post_proc <- lapply(POST, FUN = function(foo) car::recode(foo, "'Never' = 0 ; 'Annually' = 1 ; 'Seasonally' = 2 ; 'Monthly' = 3 ; 'Weekly' = 4 ; 'Daily' = 5 ; 'Not applicable' = NA ; 'Not Applicable' = NA ; 'No logging' = NA ; 'No understanding' = NA ; '' = NA ; 'Y' = T", as.numeric.result = T, as.factor.result = F))
+Post_proc <- data.frame(Post_proc)
+IsExperimental = Post_proc[2:nrow(Post_proc),c(1,ncol(Post_proc))]
+cutdown <- ncol(Post_proc)-3
+Post_proc <- Post_proc[,1:cutdown]
+best_prac <- as.vector(Post_proc[1,2:cutdown],mode='numeric')
+best_prac = append(1, best_prac)
+Post_proc <- Post_proc[2:nrow(Post_proc), ]
+
+Pre_proc <- lapply(PRE, FUN = function(foo) car::recode(foo, "'Never' = 0 ; 'never' = 0 ; 'Annually' = 1 ; 'Seasonally' = 2 ; 'Monthly' = 3 ; 'Weekly' = 4 ; 'Daily' = 5 ; 'Not applicable' = NA ; 'Not Applicable' = NA ; 'Multiple answer' = NA ; 'Mulitple answer' = NA ; 'As needed' = NA ; 'No logging' = NA ; 'No understanding' = NA ; 'NR' = NA ; '' = NA", as.numeric.result = T, as.factor.result = F))
+Pre_proc <- data.frame(Pre_proc)
+cutdown <- ncol(Pre_proc)-2
+Pre_proc <- Pre_proc[2:nrow(Pre_proc),1:cutdown]
+
+Post_proc2 <- subset(Post_proc, BPL.BLD.ID %in% Pre_proc$BPL.BLD.ID)
+Pre_proc2 <- subset(Pre_proc, BPL.BLD.ID %in% Post_proc$BPL.BLD.ID)
+Post_score <- data.frame(mapply(`/`,Post_proc2,best_prac))
+Pre_score <- data.frame(mapply(`/`,Pre_proc2,best_prac))
+Pre_score <- Pre_score[with(Pre_score, order(BPL.BLD.ID)), ]
+Post_score <- Post_score[with(Post_score, order(BPL.BLD.ID)), ]
+Pre_score[1000 > Pre_score & Pre_score > 1] <- 1
+Post_score[1000 > Post_score & Post_score > 1] <- 1
+
+Pre_post = Post_score - Pre_score
+Pre_post[,1] = Pre_score[,1]
+
+IsExperimental <- lapply(POST[2:nrow(POST),c(1,ncol(POST))], FUN = function(foo) car::recode(foo, "'' = F ; 'Y' = T", as.numeric.result = T, as.factor.result = F))
+IsExperimental <- data.frame(IsExperimental)
+IsExperimental <- subset(IsExperimental, BPL.BLD.ID %in% Pre_score$BPL.BLD.ID)
+IsExperimental <- IsExperimental[with(IsExperimental, order(BPL.BLD.ID)), ]
+```
+
+
+## Load libraries and data
+
+```{r}
+library(data.table)
+library(dplyr)
+library(ggplot2)
+
+logcheck.usage <- fread(input = "./LOGCHECK USERS WITH POST.csv", 
+                        header = TRUE)
+
+# histogram
+hist(logcheck.usage$LogCheck.Usage, ylab ="Frequency", xlab
+="Usage", main = "Average LogCheck Usage")
+
+stem(logcheck.usage$LogCheck.Usage)
+
+```
+
+#### - Merge Pre_post and IsExperimental, and list TRUE and FALSE
+```{r}
+# Merge Pre_post and IsExperimental
+pre_post.isexp <- merge(Pre_post,IsExperimental,by='BPL.BLD.ID', all.x = TRUE)
+
+summary(pre_post.isexp$LogCheck)
+
+```
+
+#Do filtering
+
+```{r}
+
+deleted_behaviors <- c()
+Pre_score.filtered <- Pre_score
+for(i in colnames(Pre_score[,2:ncol(Pre_score)])){
+isone <- na.omit(Pre_score[[i]]) == 1
+a <- ftable(isone)
+if (a[2]/sum(a) > 0.75 | all(isone)){
+  deleted_behaviors <- c(deleted_behaviors,i)
+  pre_post.isexp[, i] <- NULL
+  Pre_score.filtered[, i] <- NULL}}
+
+deleted_behaviors
+```
+### - Do histograms of pre scores
+```{r pre hist}
+prehist <- vector(mode="list", length=5)
+names(prehist) <- c("histogram", "maxfreq", "ndigits", "multiplier", "rounded")
+par(mfrow=c(1,2))
+prehist$histogram <- hist(unlist(Pre_score[,2:ncol(Pre_score)]), plot=FALSE)
+prehist$maxfreq <- max(prehist$histogram$counts)
+prehist$ndigits <- nchar(as.character(prehist$maxfreq))
+prehist$multiplier <- 10^(prehist$ndigits-2)
+prehist$rounded <- ceiling(prehist$maxfreq/prehist$multiplier)*prehist$multiplier
+plot(prehist$histogram, main="(A) Scores Before Filtering", xlab="Behavior Compliance Score",ylim = c(0, prehist$rounded))
+prehist2 <- hist(unlist(Pre_score.filtered[,2:ncol(Pre_score.filtered)]), main="(B) Scores After Filtering", xlab="Behavior Compliance Score", ylim = c(0, prehist$rounded))
+```
+### - Create new df call pre_post.all with all info: usage, isExperimental, group mean (X1, X2, ..., X8), grand mean (Xall)
+```{r}
+pre_post.all <- pre_post.isexp %>%
+  mutate(X2 = rowMeans(select(pre_post.isexp, starts_with("X2")), na.rm = TRUE),
+         X3 = rowMeans(select(pre_post.isexp, starts_with("X3")), na.rm = TRUE),
+         X4 = rowMeans(select(pre_post.isexp, starts_with("X4")), na.rm = TRUE),
+         X5 = rowMeans(select(pre_post.isexp, starts_with("X5")), na.rm = TRUE),
+         X6 = rowMeans(select(pre_post.isexp, starts_with("X6")), na.rm = TRUE),
+         X7 = rowMeans(select(pre_post.isexp, starts_with("X7")), na.rm = TRUE),
+         X8 = rowMeans(select(pre_post.isexp, starts_with("X8")), na.rm = TRUE),
+         Xall = rowMeans(select(pre_post.isexp, starts_with("X")), na.rm = TRUE))
+```
+
+## T-Tests
+
+```{r t_test}
+ttest <- function(coln,group){
+  col_C <- coln[group == 'FALSE']
+  col_E <- coln[group == 'TRUE']
+  t.test(col_E,col_C,alternative = 'greater')$p.value
+}
+
+ttest.p <- sapply(pre_post.all %>% select(-BPL.BLD.ID, -LogCheck), 
+                  function(x) ttest(x, pre_post.isexp$LogCheck))
+
+hist(ttest.p,width=5)
+signif_p <- Filter(function(x) x < .05, ttest.p)
+signif_p
+```
+
+## Wilcoxon-Mann-Whitney tests
+
+```{r wmw_test}
+#create function for WMW
+wmwtest <- function(coln, group) {
+  col_C <- coln[group == 'FALSE']
+  col_E <- coln[group == 'TRUE']
+  wilcox.test(col_E, col_C, alternative = 'greater')$p.value
+}
+
+#conduct wmw test and save p values as a dataframe 
+wmw.p <- sapply(pre_post.all %>% select(-BPL.BLD.ID, -LogCheck), 
+                wmwtest, group=pre_post.all$LogCheck)
+
+ggplot(data.frame(name = names(wmw.p), p_val = wmw.p),aes(p_val))+
+  geom_histogram()+
+  theme_bw()+
+  ggtitle("Histogram of Wilcoxon-Mann-Whitney test p value")
+
+```
+## Adjust P-values and put in dataframe
+```{r fdr}
+wmw.q <- p.adjust(wmw.p, method = "BH")
+ttest.q <- p.adjust(ttest.p, method = "BH")
+
+library(fdrtool)
+wmw.q2 <- fdrtool(wmw.p[complete.cases(wmw.p)], statistic = "pvalue")
+ttest.q2 <- fdrtool(ttest.p[complete.cases(ttest.p)], statistic = "pvalue")
+
+pvals <- merge(data.frame(name = names(ttest.p), tp_val = ttest.p, tq_val = ttest.q, tfdr2 = ttest.q),data.frame(name = names(wmw.p), wp_val = wmw.p, wq_val = wmw.q, wfdr2 = wmw.q),by='name', all.x = TRUE)
+pvals.sorted <- pvals[with(pvals, order(tp_val, wp_val)), ]
+pvals.sorted[pvals.sorted$tp_val <= 0.1,]
+
+```
+## make p value table
+```{r}
+a <- pvals[pvals$tp_val <= 0.05,c(1,2,3,5,6)]
+a[,2:5] <- round(a[,2:5],digits=4)
+a <- t(a)
+```
+### 3) Table of all means, SDs and SEMs
+### 4) Table of all mean differences
+
+```{r}
+library(tibble)
+library(dplyr)
+
+sem <- function(x, ...) {
+  sd(x, ...)/sqrt(length(na.omit(x)))
+}
+
+pre_post.stat <- pre_post.all %>%
+  group_by(LogCheck) %>%
+  summarise_at(vars(matches("X")), funs(mean, sd, sem), na.rm = TRUE) %>%
+  mutate(logc = ifelse(LogCheck == TRUE, "LogCheck", "Control")) %>%
+  column_to_rownames(var="logc") %>%
+  select(-LogCheck)
+```
+
+```{r}
+library(data.table)
+library(tidyr)
+
+pre_post.stat.rshaped <- as.data.frame(t(pre_post.stat)) %>% 
+  rownames_to_column("Behavior")  %>%
+  separate(col = Behavior, into = c("Behavior", "measure"), sep = "_") %>%
+  setDT() %>%
+  dcast(Behavior ~ measure, value.var = c("LogCheck", "Control")) %>%
+  mutate(mean_diff = LogCheck_mean - Control_mean)
+
+pre_post.stat.rshaped #Show all means, SDs, SEMs, mean differences in Exp and Ctl group
+orderedbehaviors <- pre_post.stat.rshaped[with(pre_post.stat.rshaped, order(-mean_diff)), c(1,8)]
+
+library(ggplot2)
+
+pre_post.stat.mean <- pre_post.stat.rshaped %>% 
+  select(Behavior, LogCheck_mean, Control_mean, LogCheck_sem, Control_sem) %>%
+  gather(LogCheck_mean, Control_mean, key = "group", value = "mean") %>%
+  mutate(sem = ifelse(group == "LogCheck_mean", LogCheck_sem, Control_sem),
+         group = sub("([A-Z][a-z]+)_.+", "\\1", group)) %>%
+  select(-LogCheck_sem, -Control_sem) %>%
+  merge(data.frame(Behavior = names(ttest.p), p_val = ttest.p),by='Behavior', all.x = TRUE) %>%
+  mutate(sig_level = ifelse(p_val > .1, "", ifelse(p_val > .05, "*", "**")))
+
+```
+
+## Make df for beanplotting
+
+```{r}
+
+foruse <- pre_post.all %>% 
+  mutate(Group = ifelse(LogCheck == TRUE, "LogCheck", "Control")) %>%
+  subset(select = -LogCheck)
+plotframe <- data.frame(BPL.BLD.ID=integer(),
+                 Improvement=double(), 
+                 Behavior=character(), 
+                 Group=character(),
+                 stringsAsFactors=FALSE)
+for (behavior in orderedbehaviors$Behavior){
+  newdf <- filter_(foruse,paste(behavior," > -10"))
+  newdf <- newdf[,c("BPL.BLD.ID", behavior, "Group")]
+  names(newdf)[names(newdf)==behavior] <- "Improvement"
+  newdf$Behavior <- behavior
+  plotframe <- rbind(plotframe, newdf)}
+
+
+lvl <- orderedbehaviors$Behavior
+lvl <- lvl[length(lvl):1]
+plotframe$Behavior <- factor(plotframe$Behavior, levels=lvl)
+
+```
+
+# CAN'T FIND pre_post.stat.mean.ordered
+#Do beanplot 
+```{r, }
+library(beanplot)
+library(grid)
+library(gplots)
+
+plot1 <- pre_post.stat.mean.ordered %>%
+  ggplot(aes(x = Behavior, y = mean, fill = group)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  scale_fill_manual(values=col2hex(c("purple","orange"))) +
+  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), position = position_dodge(0.9)) +
+  geom_text(aes(label=sig_level), position = position_dodge(0.9)) +
+  theme_bw()+coord_flip()+theme(legend.position="bottom",axis.title.x=element_blank(),
+                                axis.title.y=element_blank())
+  #ggtitle("Paired bar chart for all individual Behaviors with SEM whiskers")
+
+vp.BottomRight <- viewport(height=unit(0.875, "npc"),
+                           width=unit(0.5, "npc"), 
+                           just=c("left","top"), 
+                           y=0.925, x=0.45)
+
+par(mfrow=c(1,2))
+
+beanplot(Improvement ~ reorder(Group, Improvement, mean) * Behavior, bw="nrd0", data = plotframe,
+         side = "b", horizontal = TRUE, yaxt = "n", las=1, col = list("purple", "orange"), border = c("purple2","darkorange"), ylim = c(-1.5,1.5), yaxs = "i")
+axis(4, at=1:length(lvl), labels=FALSE)
+
+#ylab = "Behavior", 
+#main = "Improvement on Each Behavior", xlab = "Improvement", 
+#legend("bottomright", bty="n",c("Control", "LogCheck"), fill = c("purple", "orange"))
+
+print(plot1, vp=vp.BottomRight)
+
+```
+
+### 2) Paired bar chart with SEM whiskers or significant and marginally significant results -- a separate one for groups, and markings for significance and high significance. (Bar chart should have means.)
+
+```{r}
+
+lvl <- orderedbehaviors$Behavior
+lvl <- lvl[length(lvl):1]
+pre_post.stat.mean.ordered <- pre_post.stat.mean
+pre_post.stat.mean.ordered <- within(pre_post.stat.mean.ordered, Behavior <- factor(Behavior, levels=lvl))
+
+# Barchart for individuals (*:p<0.1 **:p<0.05)
+#pre_post.stat.mean.ordered %>%
+#  filter(grepl("^X\\d\\.\\d$", Behavior)) %>%
+#  ggplot(aes(x = Behavior, y = mean, fill = group)) +
+#  geom_bar(stat = "identity", position = "dodge") +
+#  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), position = position_dodge(0.9)) +
+#  geom_text(aes(label=sig_level), position = position_dodge(0.9)) +
+#  theme_bw()+coord_flip()+theme(legend.position="bottom") +
+#  ggtitle("Paired bar chart for all individual Behaviors with SEM whiskers")
+
+# Barchart for groups (*:p<0.1 **:p<0.05)
+pre_post.stat.mean %>%
+  filter(grepl("^X\\d$", Behavior)) %>%
+  ggplot(aes(x = Behavior, y = mean, fill = group)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  scale_fill_manual(values=col2hex(c("purple","orange"))) +
+  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
+                position = position_dodge(0.9),
+                width =.5) +
+  geom_text(aes(label=sig_level),position = position_dodge(0.9))+
+  theme_bw()+theme(legend.position="bottom") +
+  ylab("Mean Improvement")+
+  ggtitle("(B) Improvement on Aggregate Behaviors")
+
+# Barchart for individuals and groups with p < 0.05
+
+pre_post.stat.mean %>%
+  filter(Behavior %in% as.character(pvals[pvals$tp_val < 0.05, ]$name)) %>%
+  ggplot(aes(x = Behavior, y = mean, fill = group)) +
+  scale_fill_manual(values=col2hex(c("purple","orange"))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
+                position = position_dodge(0.9),
+                width = .5) +
+  theme_bw()+theme(legend.position="bottom")+
+  ylab("Mean Improvement")+
+  ggtitle("Behaviors with Significant (p < 0.05) Improvement")
+
+# Barchart for all
+
+pre_post.stat.mean %>%
+  filter(grepl("^Xall$", Behavior)) %>%
+  ggplot(aes(x = Behavior, y = mean, fill = group)) +
+  scale_fill_manual(values=col2hex(c("purple","orange"))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
+                position = position_dodge(0.9),
+                width = .5) +
+  theme_bw()+#theme(legend.position="bottom")+
+  ylab("Mean Improvement")+
+  ggtitle("(A) Overall Improvement on Tracked Behaviors")
+```
+
