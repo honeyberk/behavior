@@ -164,6 +164,12 @@ pvals.sorted <- pvals[with(pvals, order(tp_val, wp_val)), ]
 pvals.sorted[pvals.sorted$tp_val <= 0.1,]
 
 ```
+## make p value table
+```{r}
+a <- pvals[pvals$tp_val <= 0.05,c(1,2,3,5,6)]
+a[,2:5] <- round(a[,2:5],digits=4)
+a <- t(a)
+```
 ### 3) Table of all means, SDs and SEMs
 ### 4) Table of all mean differences
 
@@ -302,7 +308,7 @@ pre_post.stat.mean %>%
   geom_text(aes(label=sig_level),position = position_dodge(0.9))+
   theme_bw()+theme(legend.position="bottom") +
   ylab("Mean Improvement")+
-  ggtitle("Improvement on Aggregate Behaviors")
+  ggtitle("(B) Improvement on Aggregate Behaviors")
 
 # Barchart for individuals and groups with p < 0.05
 
@@ -316,7 +322,7 @@ pre_post.stat.mean %>%
                 width = .5) +
   theme_bw()+theme(legend.position="bottom")+
   ylab("Mean Improvement")+
-  ggtitle("Behaviors with Significant (p=0.05) Improvement")
+  ggtitle("Behaviors with Significant (p < 0.05) Improvement")
 
 # Barchart for all
 
@@ -328,8 +334,8 @@ pre_post.stat.mean %>%
   geom_errorbar(aes(ymin = mean - sem, ymax = mean + sem), 
                 position = position_dodge(0.9),
                 width = .5) +
-  theme_bw()+theme(legend.position="bottom")+
+  theme_bw()+#theme(legend.position="bottom")+
   ylab("Mean Improvement")+
-  ggtitle("Overall Improvement on Tracked Behaviors")
+  ggtitle("(A) Overall Improvement on Tracked Behaviors")
 ```
 
