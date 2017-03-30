@@ -14,7 +14,7 @@ BPL.BLD.ID,A0.3,A0.4,A0.5,A0.56,A0.57,A0.58,A0.59,A0.60,Age,Experience,A0.66,A0.
 1125,Very involved,Yes,Daily,No,Yes,Yes,Yes,Yes,44-54,10-15Y,Yes,Yes,No,No,Yes,Yes,No,Y
 1130,Very involved,No,Daily,Yes,Yes,Yes,Yes,Yes,44-54,20+Y,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Y
 1132,Very involved,Yes,Daily,Yes,Yes,Yes,Yes,Yes,55+,10-15Y,Yes,No,No,No,No,Yes,No,Y
-1147,Very involved,Yes,Daily,No,Yes,Yes,No,Yes,55+,20+,Yes,No,No,No,Yes,No,No,Y
+1147,Very involved,Yes,Daily,No,Yes,Yes,No,Yes,55+,20+Y,Yes,No,No,No,Yes,No,No,Y
 1148,Very involved,NA,Daily,Yes,Yes,Yes,Yes,Yes,55+,20+Y,Yes,No,Yes,Yes,Yes,No,No,Y
 1150,Very involved,Yes,Daily,Yes,Yes,Yes,Yes,Yes,44-54,15-20Y,Yes,Yes,Yes,Yes,Yes,No,No,Y
 1153,Very involved,No,Daily,Yes,Yes,Yes,No,Yes,44-54,20+Y,Yes,Yes,No,No,No,Yes,Yes,Y
@@ -31,7 +31,7 @@ BPL.BLD.ID,A0.3,A0.4,A0.5,A0.56,A0.57,A0.58,A0.59,A0.60,Age,Experience,A0.66,A0.
 1282,Very involved,Yes,Daily,NA,Yes,Yes,Yes,Yes,55+,10-15Y,Yes,Yes,No,No,Yes,Yes,Yes,Y
 1300,Somewhat involved,No,Daily,No,No,Yes,Yes,Yes,44-54,20+Y,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Y
 1313,Somewhat involved,Yes,Daily,Yes,Yes,Yes,No,Yes,44-54,20+Y,Yes,Yes,Yes,Yes,Yes,No,No,Y
-1314,Somewhat involved,No,Daily,No,Yes,Yes,Yes,Yes,35-44,15-20,Yes,Yes,No,Yes,Yes,Yes,No,Y
+1314,Somewhat involved,No,Daily,No,Yes,Yes,Yes,Yes,35-44,15-20Y,Yes,Yes,No,Yes,Yes,Yes,No,Y
 1321,A little involved,Yes,Daily,Yes,No,No,No,Yes,55+,20+Y,Yes,Yes,No,Yes,Yes,No,No,Y
 1322,Very involved,Yes,Daily,No,Yes,Yes,No,Yes,44-54,15-20Y,Yes,Yes,Yes,Yes,Yes,Yes,No,Y
 1323,Somewhat involved,No,Daily,No,Yes,Yes,No,Yes,55+,20+Y,Yes,Yes,Yes,Yes,Yes,Yes,Yes,Y
